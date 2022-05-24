@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 import numpy as np
 from deepflash2.all import *
 from pathlib import Path
+from PIL import Image
 
 
 #open tasks

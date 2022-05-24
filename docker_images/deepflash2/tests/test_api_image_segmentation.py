@@ -8,7 +8,7 @@ from tests.test_api import TESTABLE_MODELS
 
 
 @skipIf(
-    "image-segmentation not in ALLOWED_TASKS,
+    "image-segmentation not in ALLOWED_TASKS",
     "image-segmentation not implemented",
 )
 class ImageClassificationTestCase(TestCase):
