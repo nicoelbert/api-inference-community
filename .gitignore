@@ -7,3 +7,8 @@ pretrained_checkpoints
 *.egg-info/
 build/
 dist/
+
+#for deepflash2
+models/
+images/
+masks/
