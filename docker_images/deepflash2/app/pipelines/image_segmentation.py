@@ -12,8 +12,9 @@ from PIL import Image
 from huggingface_hub import hf_hub_download
 import os
 import shutil
+import json
 
-
+print("imports complete")
 
 #open tasks
 ## replace token
@@ -33,9 +34,10 @@ import shutil
 
 
 def deepflash2_load_models(repo_id: str, models_dir="./models"):
+    import traceback
+    import sys
 
     #repo_id is passed as model_id
-
     #download ensemble_config with filenames
     ensemble_json = hf_hub_download(repo_id=repo_id, filename="ensemble.json")
     with open(ensemble_json, 'r') as f:
@@ -66,7 +68,6 @@ class ImageSegementationPipeline():
         self.models_dir = models_dir
 
         deepflash2_load_models(self.repo_id, models_dir = self.models_dir)
-
 
     def __call__(self, inputs: Image.Image) -> List[Dict[str, Any]]:
         """

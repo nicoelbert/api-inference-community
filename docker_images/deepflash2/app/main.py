@@ -66,8 +66,8 @@ if os.environ.get("DEBUG", "") == "1":
         )
     )
 
-app = Starlette(routes=routes, middleware=middleware)
 
+app = Starlette(routes=routes, middleware=middleware)
 
 @app.on_event("startup")
 async def startup_event():
