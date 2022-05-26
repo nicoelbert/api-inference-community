@@ -101,11 +101,23 @@ class ImageSegementationPipeline():
                                      use_tta=True,
                                      export_dir=prediction_path / 'masks')
 
-        self.model.show_ensemble_results()
 
         pred = np.argmax(g_smx['this_img.png'][:], axis=-1).astype('uint8')
 
-        return pred
+        # Result Serialization
+        # encode np array result based on https://pynative.com/python-serialize-numpy-ndarray-into-json/
+        import json
+        from json import JSONEncoder
+
+        class NumpyArrayEncoder(JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                return JSONEncoder.default(self, obj)
+
+        numpyData = {"array": pred}
+        encoded_pred = json.dumps(numpyData, cls=NumpyArrayEncoder)  # use dump() to write array into file
+        return encoded_pred
 
 
 
