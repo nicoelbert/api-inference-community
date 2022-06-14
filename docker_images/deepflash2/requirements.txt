@@ -1,4 +1,4 @@
 starlette==0.14.2
 api-inference-community==0.0.23
 huggingface_hub==0.5.1
-deepflash2 == 0.1.8
+deepflash2 == 0.2.0
