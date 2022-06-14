@@ -149,7 +149,7 @@ class DockerImageTests(unittest.TestCase):
     def test_sklearn(self):
         self.framework_docker_test(
             "sklearn",
-            "structured-data-classification",
+            "tabular-classification",
             "julien-c/wine-quality",
         )
 
@@ -182,6 +182,12 @@ class DockerImageTests(unittest.TestCase):
             "speechbrain",
             "automatic-speech-recognition",
             "speechbrain/asr-wav2vec2-commonvoice-fr",
+        )
+
+        self.framework_docker_test(
+            "speechbrain",
+            "text-to-speech",
+            "speechbrain/tts-tacotron2-ljspeech",
         )
 
         self.framework_invalid_test("speechbrain")
@@ -239,6 +245,18 @@ class DockerImageTests(unittest.TestCase):
         self.framework_docker_test(
             "keras", "image-classification", "nateraw/keras-mnist-convnet"
         )
+
+    def test_fastai(self):
+        # Single Output Unit, RGB
+        self.framework_docker_test(
+            "fastai", "image-classification", "fastai/fastbook_02_bears_classifier"
+        )
+        self.framework_docker_test(
+            "fastai",
+            "image-classification",
+            "Kieranm/britishmus_plate_material_classifier",
+        )
+        self.framework_invalid_test("fastai")
 
     def test_doctr(self):
         self.framework_docker_test(
