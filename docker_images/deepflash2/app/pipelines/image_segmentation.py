@@ -5,7 +5,7 @@ if TYPE_CHECKING:
 
 # further Imports
 import numpy as np
-from deepflash2.all import *
+import torch
 from pathlib import Path
 from PIL import Image
 
@@ -13,6 +13,16 @@ from huggingface_hub import hf_hub_download
 import os
 import shutil
 import json
+
+import json
+from json import JSONEncoder
+
+
+class NumpyArrayEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 print("imports complete")
 
@@ -57,17 +67,25 @@ def deepflash2_load_models(repo_id: str, models_dir="./models"):
 
 ##########################################################################
 class ImageSegementationPipeline():
-    def __init__(self, model_id: str, SEED = 0, models_dir = './models'):
+    def __init__(self, repo_id:str, filename:str='ensemble.pt'):
         # IMPLEMENT_THIS
         # Preload all the elements you are going to need at inference.
         # For instance your model, processors, tokenizer that might be needed.
         # This function is only called once, so do all the heavy processing I/O here
-        self.repo_id = model_id
 
-        self.cfg = Config(random_state=SEED)
-        self.models_dir = models_dir
+        ensemble_path = hf_hub_download(repo_id=repo_id, filename=filename)
 
-        deepflash2_load_models(self.repo_id, models_dir = self.models_dir)
+        self.ensemble = torch.jit.load(ensemble_path)
+
+        # create Ensemble predicter here
+        """
+        # specify paths
+        test_data_path = './'
+        self.model = EnsemblePredictor('images',
+                               config=cfg,
+                               ensemble_path=ensemble_trained_path)
+        """
+
 
     def __call__(self, inputs: Image.Image) -> List[Dict[str, Any]]:
         """
@@ -79,44 +97,24 @@ class ImageSegementationPipeline():
             A :obj:`list`:. The list contains items that are dicts should be liked {"label": "XXX", "score": 0.82}
                 It is preferred if the returned list is in decreasing `score` order
         """
-        # save image into dir
-        os.makedirs('images', exist_ok=True)
-        inputs.save('images/this_img.png')
+        #arr:Union[np.ndarray, torch.Tensor]
 
-        # specify paths
-        test_data_path = './'
+        inp = np.array(inputs)
+        if len(inp.shape)==2:
+            inp = np.expand_dims(inp, -1)
+        inp = torch.tensor(inp).float().to(self.device)
+        with torch.inference_mode():
+            pred, _, _ = self.ensemble(inp)
 
-        #create model
-        self.model = EnsembleLearner('images',
-                                path=Path(test_data_path),
-                                config=self.cfg,
-                                ensemble_path=Path(self.models_dir))
+        pred = pred.cpu().numpy()
 
-        # specify paths
-        test_data_path = './'
-        prediction_path = Path('./')
-
-        # Predict and save semantic segmentation masks
-        g_smx, g_std, g_eng = self.model.get_ensemble_results(self.model.files,
-                                     use_tta=True,
-                                     export_dir=prediction_path / 'masks')
-
-
-        pred = np.argmax(g_smx['this_img.png'][:], axis=-1).astype('uint8')
-
+        ###############################
         # Result Serialization
         # encode np array result based on https://pynative.com/python-serialize-numpy-ndarray-into-json/
-        import json
-        from json import JSONEncoder
-
-        class NumpyArrayEncoder(JSONEncoder):
-            def default(self, obj):
-                if isinstance(obj, np.ndarray):
-                    return obj.tolist()
-                return JSONEncoder.default(self, obj)
-
         numpyData = {"array": pred}
         encoded_pred = json.dumps(numpyData, cls=NumpyArrayEncoder)  # use dump() to write array into file
+
+        #empty return
         return encoded_pred
 
 
